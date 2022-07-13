@@ -17,7 +17,7 @@ setup(
     author_email="potamides@posteo.net",
     packages=find_namespace_packages(include=["metrics*"]),
     install_requires=[
-        "tqdm==4.49.0",
+        "tqdm=>4.49.0",
         "fasttext==0.9.2",
         "faiss-gpu==1.6.5",
         "pyemd==0.5.1",
