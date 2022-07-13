@@ -46,6 +46,6 @@ setup(
             "sacrebleu",
         ],
     },
-    python_requires=">=3.9.0",
+    python_requires=">=3.7.13",
     zip_safe=False,
 )
