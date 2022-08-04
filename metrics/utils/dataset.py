@@ -83,9 +83,9 @@ class DatasetLoader():
                     "http://data.statmt.org/cc-100"
                 ),
             },
-            #"versions": list(range(2007, 2021)),
-            "versions": list(range(2007, 2008)),
-            "samples": (40000, 4000000),
+            "versions": list(range(2007, 2021)),
+            #"versions": list(range(2007, 2008)),
+            "samples": (40000, 5000000),
         }
     @property
     def parallel_data(self):
