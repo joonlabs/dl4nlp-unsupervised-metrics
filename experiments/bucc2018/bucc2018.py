@@ -1,73 +1,16 @@
+# import library
 from metrics.utils.dataset import DatasetLoader
 from metrics.contrastscore import ContrastScore
+
+# import utils
+from utils.bucc import load_bucc_dataset, bucc_optimize, bucc_extract
+from utils.contrastive import train_contrastive
+
+# import logging
 import logging
 
 # configure the logger
 logging.basicConfig(level=logging.INFO, datefmt="%m-%d %H:%M", format="%(asctime)s %(levelname)-8s %(message)s")
-
-
-def train_contrastive(model, source_lang, target_lang, max_len, train_batch_size, num_epochs, iterations):
-    """
-    Trains a hugging face transformer model using the UScore method with contrastive learning approach.
-
-    @param model: The name of the model that should be used
-    @param source_lang: The source language. E.g. "de"
-    @param target_lang: The target language. E.g. "en"
-    @param max_len: The maximal token length per sentence (words per sentence)
-    @param train_batch_size: The batch size used during training
-    @param num_epochs: The number of epochs for training
-    @param iterations: The number of iterations for training
-    @return: ContrastScore
-    """
-
-    # load the dataset including source and target language from the news dataset
-    dataset = DatasetLoader(source_lang, target_lang, max_monolingual_sent_len=max_len)
-
-    # extract data (src) and targets (tgt) in monolingual form
-    mono_src, mono_tgt = dataset.load("monolingual-train")
-
-    # initiate the ConstrastScore based on the given parameters
-    contrast_scorer = ContrastScore(model_name=model, source_language=source_lang, target_language=target_lang,
-                                    parallelize=True, train_batch_size=train_batch_size, num_epochs=num_epochs)
-
-    # start the training iterations
-    for iteration in range(1, iterations + 1):
-        # log the iteration
-        logging.info(f"Training iteration {iteration}.")
-        # set the scorer suffix based on the maximal token length per sentence and iteration
-        contrast_scorer.suffix = f"{max_len}-{iteration}"
-        # train the scorer
-        contrast_scorer.train(mono_src, mono_tgt, overwrite=False)
-
-    # return the scorer object for later use
-    return contrast_scorer
-
-
-def load_bucc_dataset(dataset_file):
-    """
-    Loads a BUCC dataset from a file and returns the data in a dictionary.
-
-    @param dataset_file:
-    @return:
-    """
-    # init the data
-    data = {}
-
-    # open the dataset
-    dataset = open(dataset_file, "r")
-
-    # read the lines
-    dataset_lines = dataset.readlines()
-
-    # iterate over all lines and add data to data object
-    for entry in dataset_lines:
-        data[entry.split('\t')[1][:-1]] = entry.split('\t')[0]
-
-    # close file resource
-    dataset.close()
-
-    # return data
-    return data
 
 
 # Train a scorer or load a pretrained one.
@@ -89,30 +32,6 @@ sent_en = list(sent2id_en.keys())
 # Apply unsupervised MT with ratio margin function to mine pseudo parallel data
 bucc_candidates = scorer.mine(sent_de, sent_en, train_size=10000, overwrite=True)
 
-
-# Calculate optimal threshold given the gold alignments. This function is used,
-# when the test set gold alignments are available. We will use it anyway to create 
-# candidates, settung threshold to 0 later
-def bucc_optimize(candidate_2_score, gold):
-    items = sorted(candidate_2_score.items(), key=lambda x: -x[1])
-    ngold = len(gold)
-    nextract = ncorrect = 0
-    threshold = 0
-    best_f1 = 0
-    for i in range(len(items)):
-        nextract += 1
-        if '\t'.join(items[i][0]) in gold:
-            ncorrect += 1
-        if ncorrect > 0:
-            precision = ncorrect / nextract
-            recall = ncorrect / ngold
-            f1 = 2 * precision * recall / (precision + recall)
-            if f1 > best_f1:
-                best_f1 = f1
-                threshold = (items[i][1] + items[i + 1][1]) / 2
-    return threshold
-
-
 # translate candidate pairs to its IDs
 candidate2score = {}
 for line in bucc_candidates:
@@ -130,24 +49,8 @@ for line in bucc_candidates:
 # get gold alignments
 gold = {line.strip() for line in open('de-en.training.gold', 'r')}
 
-
 # calculate threshold. Not needed in our setting
 # threshold = bucc_optimize(candidate2score, gold)
-
-# function to extract candidates given a threshold
-def bucc_extract(cand_2_score, th, fname):
-    if fname:
-        of = open(fname, 'w')
-    bitexts = []
-    for (src, trg), score in cand_2_score.items():
-        if score >= th:
-            bitexts.append(src + '\t' + trg)
-            if fname:
-                of.write(src + '\t' + trg + '\n')
-    if fname:
-        of.close()
-    return bitexts
-
 
 # extract bitexts given the calculated threshold
 bitexts = bucc_extract(candidate2score, 0, None)
@@ -161,4 +64,5 @@ if ncorrect > 0:
 else:
     precision = recall = f1 = 0
 
+# print the final results
 print(' - precision={:.2f}, recall={:.2f}, F1={:.2f}'.format(100 * precision, 100 * recall, 100 * f1))
