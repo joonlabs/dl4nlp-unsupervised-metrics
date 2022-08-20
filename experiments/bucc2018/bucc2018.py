@@ -93,8 +93,8 @@ bucc_candidates = scorer.mine(sent_de, sent_en, train_size=10000, overwrite=True
 # Calculate optimal threshold given the gold alignments. This function is used,
 # when the test set gold alignments are available. We will use it anyway to create 
 # candidates, settung threshold to 0 later
-def BuccOptimize(candidate2score, gold):
-    items = sorted(candidate2score.items(), key=lambda x: -x[1])
+def bucc_optimize(candidate_2_score, gold):
+    items = sorted(candidate_2_score.items(), key=lambda x: -x[1])
     ngold = len(gold)
     nextract = ncorrect = 0
     threshold = 0
@@ -132,14 +132,14 @@ gold = {line.strip() for line in open('de-en.training.gold', 'r')}
 
 
 # calculate threshold. Not needed in our setting
-# threshold = BuccOptimize(candidate2score, gold)
+# threshold = bucc_optimize(candidate2score, gold)
 
 # function to extract candidates given a threshold
-def BuccExtract(cand2score, th, fname):
+def bucc_extract(cand_2_score, th, fname):
     if fname:
         of = open(fname, 'w')
     bitexts = []
-    for (src, trg), score in cand2score.items():
+    for (src, trg), score in cand_2_score.items():
         if score >= th:
             bitexts.append(src + '\t' + trg)
             if fname:
@@ -150,7 +150,7 @@ def BuccExtract(cand2score, th, fname):
 
 
 # extract bitexts given the calculated threshold
-bitexts = BuccExtract(candidate2score, 0, None)
+bitexts = bucc_extract(candidate2score, 0, None)
 
 # calculate F1-Score
 ncorrect = len(gold.intersection(bitexts))
