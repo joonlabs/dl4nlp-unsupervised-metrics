@@ -47,6 +47,8 @@ def get_baseline_sentence_embeddings(src_lang=src_lang, trg_lang=trg_lang, devic
     source_sent_embeddings = calculate_embeddings(src_sents, src_embeddings, src_mask)
     target_sent_embeddings = calculate_embeddings(trg_sents, trg_embeddings, trg_mask)
 
+    return source_sent_embeddings, target_sent_embeddings
+
 def vecmap_mine(source_sent_embeddings, target_sent_embeddings, device, out, k=5, batch_size=100000):
     pairs, scores = ratio_margin_align(source_sent_embeddings, target_sent_embeddings, k, batch_size, device)
     with open(out, "wb") as f:
@@ -60,9 +62,3 @@ def vecmap_mine(source_sent_embeddings, target_sent_embeddings, device, out, k=5
                 idx += 1
                 if idx >= len(scores):
                     break
-
-
-
-
-
-

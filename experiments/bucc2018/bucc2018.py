@@ -1,10 +1,6 @@
 from metrics.utils.dataset import DatasetLoader
 from metrics.contrastscore import ContrastScore
-from collections import defaultdict
-from tabulate import tabulate
 import logging
-import time
-import datetime
 
 logging.basicConfig(level=logging.INFO, datefmt="%m-%d %H:%M", format="%(asctime)s %(levelname)-8s %(message)s")
 
@@ -24,8 +20,8 @@ def train_contrastive(model, source_lang, target_lang, max_len, train_batch_size
 
 
 # Train a scorer or load a pretrained one
-scorer = train_contrastive("sentence-transformers/distiluse-base-multilingual-cased-v2", "de", "en", max_len=32, 
-                           train_batch_size=32, num_epochs=8, iterations=6)
+scorer = train_contrastive("sentence-transformers/distiluse-base-multilingual-cased-v2", "de", "en", max_len=50, 
+                           train_batch_size=128, num_epochs=1, iterations=10)
 
 
 # Load bucc datasets and create dicts that map sentences to its ids
@@ -48,9 +44,11 @@ sent_de = list(sent2id_de.keys())
 sent_en = list(sent2id_en.keys())
 
 # Apply unsupervised MT with ratio margin function to mine pseudo parallel data
-bucc_candidates = scorer.mine(sent_de, sent_en, scorer.train_size, True)
+bucc_candidates = scorer.mine(sent_de, sent_en, train_size=10000, overwrite=True)
 
-# Calculate optimal threshold given the gold alignments
+# Calculate optimal threshold given the gold alignments. This function is used, 
+# when the test set gold alignments are available. We will use it anyway to create 
+# candidates, settung threshold to 0 later
 def BuccOptimize(candidate2score, gold):
     items = sorted(candidate2score.items(), key=lambda x: -x[1])
     ngold = len(gold)
@@ -86,10 +84,11 @@ for line in bucc_candidates:
 
 # get gold alignments
 gold = {line.strip() for line in open('de-en.training.gold', 'r')}
-# calculate threshold
-threshold = BuccOptimize(candidate2score, gold)
 
-# function to extract candidates given the calculated threshold
+# calculate threshold. Not needed in our setting
+#threshold = BuccOptimize(candidate2score, gold)
+
+# function to extract candidates given a threshold
 def BuccExtract(cand2score, th, fname):
     if fname:
         of = open(fname, 'w')
@@ -104,7 +103,7 @@ def BuccExtract(cand2score, th, fname):
     return bitexts
 
 # extract bitexts given the calculated threshold
-bitexts = BuccExtract(candidate2score, threshold, './candidate_ids.txt')
+bitexts = BuccExtract(candidate2score, 0, None)
 
 # calculate F1-Score
 ncorrect = len(gold.intersection(bitexts))
@@ -115,4 +114,4 @@ if ncorrect > 0:
 else:
     precision = recall = f1 = 0
 
-print(' - best threshold={:f}: precision={:.2f}, recall={:.2f}, F1={:.2f}'.format(threshold, 100*precision, 100*recall, 100*f1))
+print(' - precision={:.2f}, recall={:.2f}, F1={:.2f}'.format(100*precision, 100*recall, 100*f1))
