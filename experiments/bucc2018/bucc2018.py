@@ -58,6 +58,10 @@ def load_bucc_dataset(dataset_file):
 
 
 # Train a scorer or load a pretrained one.
+# For this experiment we use the "sentence-transformers/distiluse-base-multilingual-cased-v2" pretrained transformer
+# model while training it from the source language "de" (German) to the target language "en" (English) with a max number
+# of 50 words per sentence, while running 10 iterations with each 1 epoch and a batch size of 128 samples (compare to
+# SimCSE paper for reference values).
 scorer = train_contrastive("sentence-transformers/distiluse-base-multilingual-cased-v2", "de", "en", max_len=50,
                            train_batch_size=128, num_epochs=1, iterations=10)
 
