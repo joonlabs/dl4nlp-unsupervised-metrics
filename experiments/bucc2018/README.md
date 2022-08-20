@@ -16,7 +16,12 @@ If you want to use fast-align follow its install instruction and make sure that 
 
 ## Usage
 
-To train the Scorer, just execute the `bucc2018.py` file. 
+To train the Scorer, just execute the `bucc2018.py` file:
+
+```shell
+python3 bucc2018.py
+```
+
 
 This will train a `sentence-transformers/distiluse-base-multilingual-cased-v2` transformer model based Contrastive 
 Scorer from "de" (German) to "en" (English).
