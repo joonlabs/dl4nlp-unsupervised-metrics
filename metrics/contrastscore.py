@@ -126,11 +126,11 @@ class ContrastScore(CommonScore):
             with open(file_path, "wb") as f:
                 idx = 0
                 check_duplicates_set = set()
-                for _, (src, tgt) in sorted(zip(scores, pairs), key=lambda tup: tup[0], reverse=True):
+                for score, (src, tgt) in sorted(zip(scores, pairs), key=lambda tup: tup[0], reverse=True):
                     src_sent, tgt_sent = source_sents[src], target_sents[tgt]
                     if tgt_sent not in check_duplicates_set and edit_distance(src_sent, tgt_sent) / max(len(src_sent), len(tgt_sent)) > 0.5:
                         check_duplicates_set.add(tgt_sent)
-                        f.write(f"{src_sent}\t{tgt_sent}\n".encode())
+                        f.write(f"{score}\t{src_sent}\t{tgt_sent}\n".encode())
                         idx += 1
                     if idx >= mine_size:
                         break
@@ -147,7 +147,7 @@ class ContrastScore(CommonScore):
             if aligned:
                 train_data = [InputExample(texts=[s, t]) for s, t in zip(source_sents, target_sents)]
             else:
-                train_data = [InputExample(texts=[s, t]) for s, t in self.mine(source_sents, target_sents, self.train_size,
+                train_data = [InputExample(texts=[s, t]) for _, s, t in self.mine(source_sents, target_sents, self.train_size,
                     overwrite=overwrite)]
 
             # DataLoader to batch your data
