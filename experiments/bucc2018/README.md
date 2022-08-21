@@ -38,7 +38,8 @@ scorer = train_contrastive("sentence-transformers/distiluse-base-multilingual-ca
 This experiment is mainly based on the original repository of the UScore paper:
 * [Unsupervised Metrics](https://github.com/potamides/unsupervised-metrics.git)
 
-Besides, several other projects build up the foundation of the library:
+Besides, several other projects build up the foundation of our experiments and the library:
+* [LASER](https://github.com/facebookresearch/LASER/tree/main/tasks/bucc)
 * [ACL20-Reference-Free-MT-Evaluation](https://github.com/AIPHES/ACL20-Reference-Free-MT-Evaluation)
 * [Unsupervised-crosslingual-Compound-Method-For-MT](https://github.com/Rain9876/Unsupervised-crosslingual-Compound-Method-For-MT)
 * [Seq2Seq examples](https://github.com/huggingface/transformers/tree/v4.5.1/examples/seq2seq) of [transformers](https://github.com/huggingface/transformers)
