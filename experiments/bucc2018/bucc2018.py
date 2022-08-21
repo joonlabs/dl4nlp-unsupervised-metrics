@@ -36,7 +36,6 @@ bucc_candidates = scorer.mine(sent_de, sent_en, train_size=10000, overwrite=True
 candidate2score = {}
 for line in bucc_candidates:
     score, src, trg = line.split('\t')
-    # trg, src, score = line.split('\t')
     score = float(score)
     src = src.strip()
     trg = trg.strip()

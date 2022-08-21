@@ -50,15 +50,23 @@ def get_baseline_sentence_embeddings(src_lang=src_lang, trg_lang=trg_lang, devic
     return source_sent_embeddings, target_sent_embeddings
 
 def vecmap_mine(source_sent_embeddings, target_sent_embeddings, device, out, k=5, batch_size=100000):
+    # mine sentence pairs using ratio margin score
     pairs, scores = ratio_margin_align(source_sent_embeddings, target_sent_embeddings, k, batch_size, device)
+    # store pairs in file
     with open(out, "wb") as f:
         idx = 0
         check_duplicates_set = set()
         for score, (src, tgt) in sorted(zip(scores, pairs), key=lambda tup: tup[0], reverse=True):
-            src_sent, tgt_sent = sent_de[src], sent_en[tgt]
+            src_sent, tgt_sent = source_sent_embeddings[src], target_sent_embeddings[tgt]
             if tgt_sent not in check_duplicates_set and edit_distance(src_sent, tgt_sent) / max(len(src_sent), len(tgt_sent)) > 0.5:
                 check_duplicates_set.add(tgt_sent)
                 f.write(f"{score}\t{src_sent}\t{tgt_sent}\n".encode())
                 idx += 1
                 if idx >= len(scores):
                     break
+
+# get sentence embeddings from corpora
+bucc_src_sent_embeddings, bucc_trg_sent_embeddings = get_baseline_sentence_embeddings(src_lang, trg_lang, device)
+
+# mine sentence pairs and store them into file
+vecmap_mine(bucc_src_sent_embeddings, bucc_trg_sent_embeddings, device, "./bucc_mined_sentence_pairs.txt")
